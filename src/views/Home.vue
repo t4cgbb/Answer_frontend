@@ -26,7 +26,9 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="email">信箱：{{ userInfo.userEmail }}</el-dropdown-item>
+                <el-dropdown-item command="email"
+                  >信箱：{{ userInfo.userEmail }}</el-dropdown-item
+                >
                 <el-dropdown-item command="logout">登出</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -38,9 +40,15 @@
         <div class="main-page">
           <br />
           <div style="text-align: center">
-            <el-button @click="addProduct(0)" :disabled="disabled">增加商品1</el-button>
-            <el-button @click="addProduct(1)" :disabled="disabled">增加商品2</el-button>
-            <el-button @click="addProduct(2)" :disabled="disabled">增加商品3</el-button>
+            <el-button @click="addProduct(0)" :disabled="disabled"
+              >增加商品1</el-button
+            >
+            <el-button @click="addProduct(1)" :disabled="disabled"
+              >增加商品2</el-button
+            >
+            <el-button @click="addProduct(2)" :disabled="disabled"
+              >增加商品3</el-button
+            >
           </div>
 
           <h3>商品購買量記錄</h3>
@@ -55,7 +63,7 @@
             <el-table-column prop="num" label="預計購買數量" />
             <el-table-column prop="total" label="總計" width="180">
               <template #default="scope">
-                <span>{{ setFormat(scope.row.price) }}</span>
+                <span>{{ setFormat(scope.row.total) }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="option" label="操作">
@@ -78,18 +86,21 @@
                       type="primary"
                       @click="updateProduct(scope.row, 'plus')"
                       :disabled="disabled"
-                    >新增</el-button>
+                      >新增</el-button
+                    >
                     <el-button
                       type="warning"
                       @click="updateProduct(scope.row, 'subtraction')"
                       :disabled="disabled"
-                    >減少</el-button>
+                      >減少</el-button
+                    >
 
                     <el-button
                       type="danger"
                       @click="removeProduct(scope.row.pid)"
                       :disabled="disabled"
-                    >移除</el-button>
+                      >移除</el-button
+                    >
                   </el-col>
                 </el-row>
               </template>
@@ -97,10 +108,14 @@
           </el-table>
 
           <div style="margin-top: 50px; text-align: center">
-            <el-button @click="calTotalPrice()" :disabled="disabled">計算購物車總價</el-button>
+            <el-button @click="calTotalPrice()" :disabled="disabled"
+              >計算購物車總價</el-button
+            >
           </div>
 
-          <div style="text-align: center" v-if="totalPrice !== 0">您這筆訂單全部商品價格一共是{{ totalPrice }}元</div>
+          <div style="text-align: center" v-if="totalPrice !== 0">
+            您這筆訂單全部商品價格一共是{{ totalPrice }}元
+          </div>
         </div>
       </div>
     </div>
@@ -165,11 +180,11 @@ export default {
       });
     },
 
-  /**
-   * 新增商品至購物車（API）
-   * @param   number  index  商品索引（用於查找productList陣列內的商品）
-   * @return  void
-   */
+    /**
+     * 新增商品至購物車（API）
+     * @param   number  index  商品索引（用於查找productList陣列內的商品）
+     * @return  void
+     */
     addProduct(index) {
       // 商品清單並不提供該商品時，則退出
       if (this.productList[index] == void 0) return;
@@ -195,12 +210,18 @@ export default {
         .then(() => (this.disabled = false));
     },
 
-  /**
-   * 更新購物車中的商品數量（API）
-   * @param   obj     row  要更新的產品資訊
-   * @param   string  type 判斷新增 或 更新
-   */
+    /**
+     * 更新購物車中的商品數量（API）
+     * @param   obj     row  要更新的產品資訊
+     * @param   string  type 判斷新增 或 更新
+     */
     updateProduct(row, type = "plus") {
+      // 避免使用者輸入一些奇怪的參數
+      if (parseInt(row.inputNum).toString() === 'NaN') {
+        ElMessage.warning('請輸入數字');
+        return;
+      } 
+　　
       // 若type不為加及減，則退出
       if (type !== "plus" && type !== "subtraction") return;
 
@@ -210,7 +231,9 @@ export default {
       } else {
         // 若要減少的商品數量大於現在購物車數量，則提示並離開
         if (row.inputNum >= row.num) {
-          ElMessage.warning("您現在的商品數量並沒有這麼多，請確認減少數量後重試！");
+          ElMessage.warning(
+            "您現在的商品數量並沒有這麼多，請確認減少數量後重試！"
+          );
           return;
         }
         row.num -= parseInt(row.inputNum, 10);
@@ -222,22 +245,31 @@ export default {
         num: row.num,
       };
 
-
       // 按鈕禁止
       this.disabled = true;
       // 更新資料
       this.$api
         .updateProductNum(data)
-        .then((res) => { })
+        .then((res) => {
+          if (res.code === 3) {
+            // 計算總價格
+            row.total = parseInt(row.num, 10) * parseInt(row.price, 10);
+            // 提示訊息
+            ElMessage.success(res.message);
+          } else {
+            // 提示訊息
+            ElMessage.warning(res.message);
+          }
+        })
         .catch((err) => console.error(err))
         .then(() => (this.disabled = false));
     },
 
-  /**
-   * 移除購物車的商品（API）
-   * @param   string  pid  商品編號（only key）
-   * @return  void
-   */
+    /**
+     * 移除購物車的商品（API）
+     * @param   string  pid  商品編號（only key）
+     * @return  void
+     */
     removeProduct(pid) {
       ElMessageBox.confirm("您是否確定要從購物車中移除這一項產品？", "警告", {
         confirmButtonText: "是",
@@ -249,7 +281,7 @@ export default {
         this.$api
           .removeProduct(pid)
           .then((res) => {
-            if (res.code === 3) {
+            if (res.code === 2) {
               // 提示訊息
               ElMessage.success(res.message);
               // 刷新介面
@@ -264,15 +296,16 @@ export default {
       });
     },
 
-  /**
-   * 計算現有購物車總價格（API）
-   * 說明：後端透過Session進行儲存，這邊會把請求回傳至後端，讓後端計算Session中所有商品的價格後，再回傳至前端
-   * @return  void
-   */
+    /**
+     * 計算現有購物車總價格（API）
+     * 說明：後端透過Session進行儲存，這邊會把請求回傳至後端，讓後端計算Session中所有商品的價格後，再回傳至前端
+     * @return  void
+     */
     calTotalPrice() {
-
-      if(this.shoppingCartArray.length === 0){
-        ElMessage.warning('目前您的購物車沒有商品！請先點擊上方增加商品的按鈕哦！');
+      if (this.shoppingCartArray.length === 0) {
+        ElMessage.warning(
+          "目前您的購物車沒有商品！請先點擊上方增加商品的按鈕哦！"
+        );
       }
 
       // 禁止
@@ -289,16 +322,15 @@ export default {
         .then(() => (this.disabled = false));
     },
 
-  /**
-   * 千位符號
-   * 說明：將字串正則為千位符號逗號，並回傳字串
-   * @param   string  n
-   * @return  string 
-   */
+    /**
+     * 千位符號
+     * 說明：將字串正則為千位符號逗號，並回傳字串
+     * @param   string  n
+     * @return  string
+     */
     setFormat(n) {
-      return String(n).replace(/(\d)(?=(\d{3})+$)/g, "$1,")
+      return String(n).replace(/(\d)(?=(\d{3})+$)/g, "$1,");
     },
-
   },
 
   mounted() {

@@ -1,7 +1,39 @@
-# Vue 3 + Vite
+# 題目解答
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+該項目僅為回答考題使用！
 
-## Recommended IDE Setup
 
-- [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+### 技術：
+```
+    後端：Laravel8 + Php8（題目一、二、三皆有使用）
+    前端：Vue3 + Vite（僅題目三用到）
+```
+
+
+### 環境安裝
+
+後端
+```
+Composer require
+
+Php artisan serve
+
+running on port 8000
+
+```
+
+前端
+```
+npm install
+
+npm run dev
+
+or
+
+yarn
+
+yarn run dev
+
+running on port 8080
+
+```
